@@ -68,4 +68,68 @@ def move_player(dx, dy):
             st.session_state.game_over = True
             st.session_state.message = f"👹 술래에게 잡혔습니다! 게임 오버! (버틴 턴 수: {st.session_state.turns})"
         else:
-            st.session_state.
+            st.session_state.message = f"🏃 무사히 도망쳤습니다! (현재 {st.session_state.turns}턴 생존 중)"
+    else:
+        st.session_state.message = "⚠️ 벽에 막혀서 그쪽으로 갈 수 없습니다. 다른 방향을 선택하세요!"
+
+# 5. 게임 보드(그리드) 렌더링 함수
+def render_grid():
+    grid_str = ""
+    for y in range(GRID_SIZE):
+        row_str = ""
+        for x in range(GRID_SIZE):
+            if [x, y] == st.session_state.player_pos and [x, y] == st.session_state.tagger_pos:
+                row_str += "💥 " # 잡힌 상태
+            elif [x, y] == st.session_state.player_pos:
+                row_str += "🏃 " # 플레이어
+            elif [x, y] == st.session_state.tagger_pos:
+                row_str += "👹 " # 술래
+            else:
+                row_str += "⬜ " # 빈 공간
+        grid_str += f"### {row_str}\n"
+    return grid_str
+
+# 6. 화면 출력 영역
+# 상태 메시지 및 점수
+if st.session_state.game_over:
+    st.error(st.session_state.message)
+else:
+    st.info(st.session_state.message)
+
+st.metric(label="🏆 생존 턴 수", value=f"{st.session_state.turns} 턴")
+
+# 맵 출력 (가운데 정렬 느낌으로 배치)
+col_board_1, col_board_2, col_board_3 = st.columns([1, 2, 1])
+with col_board_2:
+    st.markdown(render_grid())
+
+st.write("---")
+
+# 7. 조작 버튼 (방향키 컨트롤러 레이아웃)
+if not st.session_state.game_over:
+    st.write("### 🎮 이동 방향 선택")
+    c1, c2, c3 = st.columns(3)
+    
+    with c2:
+        if st.button("⬆️ 위로", use_container_width=True):
+            move_player(0, -1)
+            st.rerun()
+            
+    c4, c5, c6 = st.columns(3)
+    with c4:
+        if st.button("⬅️ 왼쪽", use_container_width=True):
+            move_player(-1, 0)
+            st.rerun()
+    with c5:
+        if st.button("⬇️ 아래로", use_container_width=True):
+            move_player(0, 1)
+            st.rerun()
+    with c6:
+        if st.button("➡️ 오른쪽", use_container_width=True):
+            move_player(1, 0)
+            st.rerun()
+else:
+    # 게임 오버 시 재시작 버튼 출력
+    if st.button("🔄 게임 다시 시작하기", type="primary", use_container_width=True):
+        init_game()
+        st.rerun()
